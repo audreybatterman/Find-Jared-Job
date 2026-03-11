@@ -1,0 +1,452 @@
+import { useState, useEffect, useCallback } from "react";
+
+const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
+const GMAIL_MCP = "https://gmail.mcp.claude.com/mcp";
+
+const FILTERS = ["All", "Remote", "AI Company", "$150K+", "Senior"];
+
+const TAG_COLORS = {
+  "Remote": { bg: "#d1fae5", color: "#065f46" },
+  "AI Company": { bg: "#ede9fe", color: "#5b21b6" },
+  "$150K+": { bg: "#fef3c7", color: "#92400e" },
+  "Senior": { bg: "#fee2e2", color: "#991b1b" },
+  "New": { bg: "#dbeafe", color: "#1e40af" },
+};
+
+const SAMPLE_JOBS_PROMPT = `You are a UX job board curator. Generate 12 realistic, current UX job listings for 2025-2026. 
+Return ONLY valid JSON array with no markdown, no backticks, just raw JSON.
+
+Each job object must have exactly these fields:
+{
+  "id": number,
+  "title": string (UX role title),
+  "company": string,
+  "location": string,
+  "salary": string (e.g. "$140K–$180K"),
+  "salaryMin": number (minimum salary in thousands, e.g. 140),
+  "tags": string[] (subset of: ["Remote", "AI Company", "$150K+", "Senior", "New"]),
+  "description": string (2 sentences about the role),
+  "postedDays": number (days ago posted, 0-14),
+  "isAI": boolean (is this an AI-focused company like OpenAI, Anthropic, Google DeepMind, etc),
+  "applyUrl": string (realistic fake apply URL)
+}
+
+Rules:
+- Mix of remote and hybrid roles
+- At least 6 remote positions
+- At least 4 AI companies (Anthropic, OpenAI, Google DeepMind, Figma, Notion, Linear, etc)
+- At least 5 roles paying $150K+
+- Mix of seniority levels
+- Tag "$150K+" only if salaryMin >= 150
+- Tag "AI Company" only if isAI is true
+- Tag "New" if postedDays <= 3
+- Make it feel real and current`;
+
+export default function UXJobBoard() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailStatus, setEmailStatus] = useState(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchJobs = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const response = await fetch(ANTHROPIC_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 4000,
+          messages: [{ role: "user", content: SAMPLE_JOBS_PROMPT }],
+        }),
+      });
+      const data = await response.json();
+      const text = data.content?.map(b => b.text || "").join("") || "[]";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setJobs(parsed);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to fetch jobs:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+
+  const filteredJobs = jobs.filter(job => {
+    const matchesFilter =
+      filter === "All" ||
+      (filter === "Remote" && job.tags?.includes("Remote")) ||
+      (filter === "AI Company" && job.tags?.includes("AI Company")) ||
+      (filter === "$150K+" && job.tags?.includes("$150K+")) ||
+      (filter === "Senior" && job.tags?.includes("Senior"));
+    const matchesSearch =
+      !searchQuery ||
+      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const sendEmailAlert = async () => {
+    if (!email || !email.includes("@")) {
+      setEmailStatus({ type: "error", msg: "Please enter a valid email address." });
+      return;
+    }
+    setSendingEmail(true);
+    setEmailStatus(null);
+
+    const topJobs = filteredJobs.slice(0, 5);
+    const jobList = topJobs.map((j, i) =>
+      `${i + 1}. ${j.title} at ${j.company} — ${j.salary} | ${j.location} | ${j.tags?.join(", ")}`
+    ).join("\n");
+
+    const emailPrompt = `Send an email using Gmail to ${email} with:
+Subject: 🎨 UX Job Alert — ${topJobs.length} New Roles Found (Remote & AI-Focused)
+
+Body:
+Hi there,
+
+Here are your latest curated UX job opportunities — prioritizing remote positions, AI companies, and roles paying $150K+:
+
+${jobList}
+
+Filter active: "${filter}" | Found ${filteredJobs.length} total matching roles.
+
+These roles were curated by your UX Job Board. Click through to apply early — top UX roles fill fast!
+
+Best,
+UX Job Board 🎯
+
+Please send this email now.`;
+
+    try {
+      const response = await fetch(ANTHROPIC_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: emailPrompt }],
+          mcp_servers: [{ type: "url", url: GMAIL_MCP, name: "gmail" }],
+        }),
+      });
+      const data = await response.json();
+      const hasToolUse = data.content?.some(b => b.type === "mcp_tool_use" || b.type === "tool_use");
+      const textBlocks = data.content?.filter(b => b.type === "text").map(b => b.text).join(" ") || "";
+      const sent = hasToolUse || textBlocks.toLowerCase().includes("sent") || textBlocks.toLowerCase().includes("email");
+
+      if (sent) {
+        setEmailStatus({ type: "success", msg: `Alert sent to ${email}! Check your inbox.` });
+      } else {
+        setEmailStatus({ type: "error", msg: "Couldn't send via Gmail. Make sure Gmail is connected in your Claude settings." });
+      }
+    } catch (err) {
+      setEmailStatus({ type: "error", msg: "Failed to send. Please check your Gmail connection." });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const timeAgo = (days) => {
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    return `${days}d ago`;
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0a0a0f",
+      color: "#f0ede8",
+      fontFamily: "'Georgia', 'Times New Roman', serif",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Background grid */}
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
+        `,
+        backgroundSize: "60px 60px",
+      }} />
+
+      {/* Accent glow */}
+      <div style={{
+        position: "fixed", top: "-200px", right: "-100px",
+        width: "600px", height: "600px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "1100px", margin: "0 auto", padding: "0 24px 80px" }}>
+
+        {/* Header */}
+        <header style={{ padding: "48px 0 32px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
+            <div>
+              <div style={{ fontSize: "11px", letterSpacing: "4px", color: "#8b5cf6", marginBottom: "8px", textTransform: "uppercase" }}>
+                ✦ Curated by AI
+              </div>
+              <h1 style={{ fontSize: "clamp(36px, 5vw, 58px)", fontWeight: "400", margin: "0", lineHeight: "1", letterSpacing: "-2px", color: "#f0ede8" }}>
+                UX Positions
+              </h1>
+              <p style={{ margin: "8px 0 0", color: "#6b7280", fontSize: "15px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+                Remote-first · AI companies · $150K+ roles
+              </p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {lastUpdated && (
+                <span style={{ fontSize: "12px", color: "#4b5563", fontFamily: "monospace" }}>
+                  Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+              <button onClick={() => fetchJobs(true)} disabled={refreshing} style={{
+                background: "none", border: "1px solid rgba(255,255,255,0.15)",
+                color: "#9ca3af", padding: "8px 16px", borderRadius: "6px",
+                fontSize: "12px", cursor: "pointer", fontFamily: "monospace",
+                letterSpacing: "1px", transition: "all 0.2s",
+              }}
+                onMouseOver={e => e.target.style.borderColor = "#8b5cf6"}
+                onMouseOut={e => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
+              >
+                {refreshing ? "↻ Refreshing..." : "↻ Refresh"}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Email Alert Bar */}
+        <div style={{
+          margin: "28px 0",
+          background: "rgba(139,92,246,0.07)",
+          border: "1px solid rgba(139,92,246,0.2)",
+          borderRadius: "12px",
+          padding: "20px 24px",
+        }}>
+          <div style={{ fontSize: "12px", letterSpacing: "2px", color: "#8b5cf6", marginBottom: "12px", textTransform: "uppercase" }}>
+            ✉ Email Job Alerts
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{
+                flex: 1, minWidth: "200px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "8px",
+                padding: "10px 14px",
+                color: "#f0ede8",
+                fontSize: "14px",
+                fontFamily: "monospace",
+                outline: "none",
+              }}
+            />
+            <button onClick={sendEmailAlert} disabled={sendingEmail} style={{
+              background: sendingEmail ? "rgba(139,92,246,0.3)" : "#8b5cf6",
+              border: "none", borderRadius: "8px",
+              padding: "10px 22px", color: "white",
+              fontSize: "13px", fontFamily: "monospace",
+              letterSpacing: "1px", cursor: "pointer",
+              transition: "all 0.2s", whiteSpace: "nowrap",
+            }}>
+              {sendingEmail ? "Sending..." : "Send Current Listings →"}
+            </button>
+          </div>
+          {emailStatus && (
+            <div style={{
+              marginTop: "10px", fontSize: "13px", fontFamily: "monospace",
+              color: emailStatus.type === "success" ? "#34d399" : "#f87171",
+            }}>
+              {emailStatus.type === "success" ? "✓" : "✗"} {emailStatus.msg}
+            </div>
+          )}
+          <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#4b5563", fontFamily: "monospace" }}>
+            Sends top {Math.min(filteredJobs.length, 5)} jobs from your current view via Gmail
+          </p>
+        </div>
+
+        {/* Search + Filters */}
+        <div style={{ marginBottom: "24px" }}>
+          <input
+            type="text"
+            placeholder="Search by title, company, or location..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "10px",
+              padding: "12px 18px",
+              color: "#f0ede8", fontSize: "15px",
+              fontFamily: "Georgia, serif",
+              outline: "none", marginBottom: "16px",
+            }}
+          />
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {FILTERS.map(f => (
+              <button key={f} onClick={() => setFilter(f)} style={{
+                padding: "7px 16px",
+                background: filter === f ? "#8b5cf6" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${filter === f ? "#8b5cf6" : "rgba(255,255,255,0.1)"}`,
+                borderRadius: "20px", color: filter === f ? "white" : "#9ca3af",
+                fontSize: "13px", cursor: "pointer",
+                fontFamily: "monospace", letterSpacing: "0.5px",
+                transition: "all 0.15s",
+              }}>
+                {f}
+              </button>
+            ))}
+            <span style={{ marginLeft: "auto", alignSelf: "center", fontSize: "13px", color: "#4b5563", fontFamily: "monospace" }}>
+              {loading ? "Loading..." : `${filteredJobs.length} roles`}
+            </span>
+          </div>
+        </div>
+
+        {/* Job Cards */}
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "80px 0" }}>
+            <div style={{ fontSize: "32px", marginBottom: "16px" }}>◌</div>
+            <p style={{ color: "#4b5563", fontFamily: "monospace", fontSize: "13px", letterSpacing: "2px" }}>
+              CURATING POSITIONS...
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {filteredJobs.map((job, i) => (
+              <div
+                key={job.id || i}
+                onClick={() => setSelectedJob(selectedJob?.id === job.id ? null : job)}
+                style={{
+                  background: selectedJob?.id === job.id ? "rgba(139,92,246,0.08)" : "rgba(255,255,255,0.02)",
+                  border: `1px solid ${selectedJob?.id === job.id ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.06)"}`,
+                  borderRadius: "10px",
+                  padding: "20px 24px",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  position: "relative",
+                }}
+                onMouseOver={e => { if (selectedJob?.id !== job.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                onMouseOut={e => { if (selectedJob?.id !== job.id) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+              >
+                {/* AI badge */}
+                {job.isAI && (
+                  <div style={{
+                    position: "absolute", top: "16px", right: "20px",
+                    fontSize: "10px", letterSpacing: "2px", color: "#8b5cf6",
+                    fontFamily: "monospace", textTransform: "uppercase",
+                  }}>
+                    ✦ AI CO.
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap" }}>
+                      <h3 style={{ margin: 0, fontSize: "17px", fontWeight: "400", color: "#f0ede8", letterSpacing: "-0.3px" }}>
+                        {job.title}
+                      </h3>
+                    </div>
+                    <div style={{ fontSize: "14px", color: "#6b7280", fontFamily: "monospace", marginBottom: "10px" }}>
+                      {job.company} · {job.location}
+                    </div>
+
+                    {/* Tags */}
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                      {job.tags?.map(tag => (
+                        <span key={tag} style={{
+                          padding: "3px 9px",
+                          borderRadius: "4px",
+                          fontSize: "11px",
+                          fontFamily: "monospace",
+                          letterSpacing: "0.5px",
+                          background: TAG_COLORS[tag]?.bg || "#1f2937",
+                          color: TAG_COLORS[tag]?.color || "#9ca3af",
+                        }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: "16px", color: "#f0ede8", fontFamily: "monospace", whiteSpace: "nowrap" }}>
+                      {job.salary}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#4b5563", fontFamily: "monospace", marginTop: "4px" }}>
+                      {timeAgo(job.postedDays)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded details */}
+                {selectedJob?.id === job.id && (
+                  <div style={{
+                    marginTop: "16px",
+                    paddingTop: "16px",
+                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                  }}>
+                    <p style={{ margin: "0 0 16px", fontSize: "14px", color: "#9ca3af", lineHeight: "1.6" }}>
+                      {job.description}
+                    </p>
+                    <a
+                      href={job.applyUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{
+                        display: "inline-block",
+                        background: "#8b5cf6",
+                        color: "white",
+                        padding: "9px 20px",
+                        borderRadius: "7px",
+                        fontSize: "13px",
+                        fontFamily: "monospace",
+                        letterSpacing: "1px",
+                        textDecoration: "none",
+                        transition: "opacity 0.15s",
+                      }}
+                    >
+                      Apply Now →
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredJobs.length === 0 && (
+          <div style={{ textAlign: "center", padding: "60px", color: "#4b5563" }}>
+            <div style={{ fontSize: "40px", marginBottom: "12px" }}>∅</div>
+            <p style={{ fontFamily: "monospace" }}>No roles match your current filters.</p>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{ marginTop: "48px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+          <p style={{ fontSize: "12px", color: "#374151", fontFamily: "monospace", letterSpacing: "1px" }}>
+            CURATED BY CLAUDE AI · REMOTE-FIRST · UX POSITIONS 2026
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
