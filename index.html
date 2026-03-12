@@ -1,452 +1,240 @@
-import { useState, useEffect, useCallback } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Jared a Job — UX Positions</title>
+  <meta name="description" content="Curated UX job listings. Remote-first, AI companies, $150K+ roles." />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0f; font-family: Georgia, 'Times New Roman', serif; color: #f0ede8; }
+    input { font-family: monospace; }
+    input::placeholder { color: #4b5563; }
+    input:focus { outline: none; border-color: #8b5cf6 !important; }
 
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
-const GMAIL_MCP = "https://gmail.mcp.claude.com/mcp";
-
-const FILTERS = ["All", "Remote", "AI Company", "$150K+", "Senior"];
-
-const TAG_COLORS = {
-  "Remote": { bg: "#d1fae5", color: "#065f46" },
-  "AI Company": { bg: "#ede9fe", color: "#5b21b6" },
-  "$150K+": { bg: "#fef3c7", color: "#92400e" },
-  "Senior": { bg: "#fee2e2", color: "#991b1b" },
-  "New": { bg: "#dbeafe", color: "#1e40af" },
-};
-
-const SAMPLE_JOBS_PROMPT = `You are a UX job board curator. Generate 12 realistic, current UX job listings for 2025-2026. 
-Return ONLY valid JSON array with no markdown, no backticks, just raw JSON.
-
-Each job object must have exactly these fields:
-{
-  "id": number,
-  "title": string (UX role title),
-  "company": string,
-  "location": string,
-  "salary": string (e.g. "$140K–$180K"),
-  "salaryMin": number (minimum salary in thousands, e.g. 140),
-  "tags": string[] (subset of: ["Remote", "AI Company", "$150K+", "Senior", "New"]),
-  "description": string (2 sentences about the role),
-  "postedDays": number (days ago posted, 0-14),
-  "isAI": boolean (is this an AI-focused company like OpenAI, Anthropic, Google DeepMind, etc),
-  "applyUrl": string (realistic fake apply URL)
-}
-
-Rules:
-- Mix of remote and hybrid roles
-- At least 6 remote positions
-- At least 4 AI companies (Anthropic, OpenAI, Google DeepMind, Figma, Notion, Linear, etc)
-- At least 5 roles paying $150K+
-- Mix of seniority levels
-- Tag "$150K+" only if salaryMin >= 150
-- Tag "AI Company" only if isAI is true
-- Tag "New" if postedDays <= 3
-- Make it feel real and current`;
-
-export default function UXJobBoard() {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [email, setEmail] = useState("");
-  const [emailStatus, setEmailStatus] = useState(null);
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-
-  const fetchJobs = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const response = await fetch(ANTHROPIC_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4000,
-          messages: [{ role: "user", content: SAMPLE_JOBS_PROMPT }],
-        }),
-      });
-      const data = await response.json();
-      const text = data.content?.map(b => b.text || "").join("") || "[]";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
-      setJobs(parsed);
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to fetch jobs:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    .grid-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
     }
-  }, []);
-
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
-
-  const filteredJobs = jobs.filter(job => {
-    const matchesFilter =
-      filter === "All" ||
-      (filter === "Remote" && job.tags?.includes("Remote")) ||
-      (filter === "AI Company" && job.tags?.includes("AI Company")) ||
-      (filter === "$150K+" && job.tags?.includes("$150K+")) ||
-      (filter === "Senior" && job.tags?.includes("Senior"));
-    const matchesSearch =
-      !searchQuery ||
-      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  const sendEmailAlert = async () => {
-    if (!email || !email.includes("@")) {
-      setEmailStatus({ type: "error", msg: "Please enter a valid email address." });
-      return;
+    .glow {
+      position: fixed; top: -200px; right: -100px;
+      width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
     }
-    setSendingEmail(true);
-    setEmailStatus(null);
+    .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
 
-    const topJobs = filteredJobs.slice(0, 5);
-    const jobList = topJobs.map((j, i) =>
-      `${i + 1}. ${j.title} at ${j.company} — ${j.salary} | ${j.location} | ${j.tags?.join(", ")}`
-    ).join("\n");
+    header { padding: 48px 0 32px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 28px; }
+    .header-inner { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+    .eyebrow { font-size: 11px; letter-spacing: 4px; color: #8b5cf6; margin-bottom: 8px; text-transform: uppercase; font-family: monospace; }
+    h1 { font-size: clamp(36px, 5vw, 58px); font-weight: 400; letter-spacing: -2px; line-height: 1; }
+    .subtitle { margin-top: 8px; color: #6b7280; font-size: 15px; font-family: monospace; }
+    .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .last-updated { font-size: 12px; color: #4b5563; font-family: monospace; }
+    .btn-ghost { background: none; border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-family: monospace; letter-spacing: 1px; cursor: pointer; transition: border-color 0.2s; }
+    .btn-ghost:hover { border-color: #8b5cf6; }
 
-    const emailPrompt = `Send an email using Gmail to ${email} with:
-Subject: 🎨 UX Job Alert — ${topJobs.length} New Roles Found (Remote & AI-Focused)
+    .alert-box { background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.2); border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
+    .alert-label { font-size: 11px; letter-spacing: 2px; color: #8b5cf6; margin-bottom: 12px; text-transform: uppercase; font-family: monospace; }
+    .alert-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .alert-input { flex: 1; min-width: 200px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: #f0ede8; font-size: 14px; }
+    .btn-purple { background: #8b5cf6; border: none; border-radius: 8px; padding: 10px 22px; color: white; font-size: 13px; font-family: monospace; letter-spacing: 1px; white-space: nowrap; cursor: pointer; transition: opacity 0.2s; }
+    .btn-purple:hover { opacity: 0.85; }
+    .alert-hint { margin-top: 10px; font-size: 12px; color: #4b5563; font-family: monospace; }
+    .alert-status { margin-top: 10px; font-size: 13px; font-family: monospace; }
 
-Body:
-Hi there,
+    .search-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 18px; color: #f0ede8; font-size: 15px; font-family: Georgia, serif; margin-bottom: 16px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+    .filter-btn { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-family: monospace; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #9ca3af; cursor: pointer; transition: all 0.15s; }
+    .filter-btn.active { background: #8b5cf6; border-color: #8b5cf6; color: white; }
+    .count { margin-left: auto; font-size: 13px; color: #4b5563; font-family: monospace; }
 
-Here are your latest curated UX job opportunities — prioritizing remote positions, AI companies, and roles paying $150K+:
+    .jobs { display: flex; flex-direction: column; gap: 2px; }
+    .job-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 20px 24px; cursor: pointer; position: relative; transition: all 0.15s; }
+    .job-card:hover { background: rgba(255,255,255,0.04); }
+    .job-card.open { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3); }
+    .ai-badge { position: absolute; top: 16px; right: 20px; font-size: 10px; letter-spacing: 2px; color: #8b5cf6; font-family: monospace; }
+    .card-inner { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .card-left { flex: 1; min-width: 0; }
+    .job-title { font-size: 17px; font-weight: 400; color: #f0ede8; letter-spacing: -0.3px; margin-bottom: 4px; }
+    .job-meta { font-size: 14px; color: #6b7280; font-family: monospace; margin-bottom: 10px; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { padding: 3px 9px; border-radius: 4px; font-size: 11px; font-family: monospace; }
+    .card-right { text-align: right; flex-shrink: 0; }
+    .salary { font-size: 16px; color: #f0ede8; font-family: monospace; white-space: nowrap; }
+    .posted { font-size: 11px; color: #4b5563; font-family: monospace; margin-top: 4px; }
+    .card-detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .job-card.open .card-detail { display: block; }
+    .job-desc { font-size: 14px; color: #9ca3af; line-height: 1.6; margin-bottom: 16px; }
+    .btn-apply { display: inline-block; background: #8b5cf6; color: white; padding: 9px 20px; border-radius: 7px; font-size: 13px; font-family: monospace; letter-spacing: 1px; text-decoration: none; }
+    .empty { text-align: center; padding: 60px; color: #4b5563; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
+    footer p { font-size: 12px; color: #374151; font-family: monospace; letter-spacing: 1px; }
+    @media (max-width: 600px) { .card-inner { flex-direction: column; } .card-right { text-align: left; } }
+  </style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow"></div>
+<div class="wrap">
 
-${jobList}
-
-Filter active: "${filter}" | Found ${filteredJobs.length} total matching roles.
-
-These roles were curated by your UX Job Board. Click through to apply early — top UX roles fill fast!
-
-Best,
-UX Job Board 🎯
-
-Please send this email now.`;
-
-    try {
-      const response = await fetch(ANTHROPIC_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{ role: "user", content: emailPrompt }],
-          mcp_servers: [{ type: "url", url: GMAIL_MCP, name: "gmail" }],
-        }),
-      });
-      const data = await response.json();
-      const hasToolUse = data.content?.some(b => b.type === "mcp_tool_use" || b.type === "tool_use");
-      const textBlocks = data.content?.filter(b => b.type === "text").map(b => b.text).join(" ") || "";
-      const sent = hasToolUse || textBlocks.toLowerCase().includes("sent") || textBlocks.toLowerCase().includes("email");
-
-      if (sent) {
-        setEmailStatus({ type: "success", msg: `Alert sent to ${email}! Check your inbox.` });
-      } else {
-        setEmailStatus({ type: "error", msg: "Couldn't send via Gmail. Make sure Gmail is connected in your Claude settings." });
-      }
-    } catch (err) {
-      setEmailStatus({ type: "error", msg: "Failed to send. Please check your Gmail connection." });
-    } finally {
-      setSendingEmail(false);
-    }
-  };
-
-  const timeAgo = (days) => {
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    return `${days}d ago`;
-  };
-
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0a0a0f",
-      color: "#f0ede8",
-      fontFamily: "'Georgia', 'Times New Roman', serif",
-      position: "relative",
-      overflow: "hidden",
-    }}>
-      {/* Background grid */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        backgroundImage: `
-          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "60px 60px",
-      }} />
-
-      {/* Accent glow */}
-      <div style={{
-        position: "fixed", top: "-200px", right: "-100px",
-        width: "600px", height: "600px", borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)",
-        pointerEvents: "none", zIndex: 0,
-      }} />
-
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "1100px", margin: "0 auto", padding: "0 24px 80px" }}>
-
-        {/* Header */}
-        <header style={{ padding: "48px 0 32px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
-            <div>
-              <div style={{ fontSize: "11px", letterSpacing: "4px", color: "#8b5cf6", marginBottom: "8px", textTransform: "uppercase" }}>
-                ✦ Curated by AI
-              </div>
-              <h1 style={{ fontSize: "clamp(36px, 5vw, 58px)", fontWeight: "400", margin: "0", lineHeight: "1", letterSpacing: "-2px", color: "#f0ede8" }}>
-                UX Positions
-              </h1>
-              <p style={{ margin: "8px 0 0", color: "#6b7280", fontSize: "15px", fontFamily: "monospace", letterSpacing: "0.5px" }}>
-                Remote-first · AI companies · $150K+ roles
-              </p>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {lastUpdated && (
-                <span style={{ fontSize: "12px", color: "#4b5563", fontFamily: "monospace" }}>
-                  Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
-              )}
-              <button onClick={() => fetchJobs(true)} disabled={refreshing} style={{
-                background: "none", border: "1px solid rgba(255,255,255,0.15)",
-                color: "#9ca3af", padding: "8px 16px", borderRadius: "6px",
-                fontSize: "12px", cursor: "pointer", fontFamily: "monospace",
-                letterSpacing: "1px", transition: "all 0.2s",
-              }}
-                onMouseOver={e => e.target.style.borderColor = "#8b5cf6"}
-                onMouseOut={e => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-              >
-                {refreshing ? "↻ Refreshing..." : "↻ Refresh"}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Email Alert Bar */}
-        <div style={{
-          margin: "28px 0",
-          background: "rgba(139,92,246,0.07)",
-          border: "1px solid rgba(139,92,246,0.2)",
-          borderRadius: "12px",
-          padding: "20px 24px",
-        }}>
-          <div style={{ fontSize: "12px", letterSpacing: "2px", color: "#8b5cf6", marginBottom: "12px", textTransform: "uppercase" }}>
-            ✉ Email Job Alerts
-          </div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              style={{
-                flex: 1, minWidth: "200px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "8px",
-                padding: "10px 14px",
-                color: "#f0ede8",
-                fontSize: "14px",
-                fontFamily: "monospace",
-                outline: "none",
-              }}
-            />
-            <button onClick={sendEmailAlert} disabled={sendingEmail} style={{
-              background: sendingEmail ? "rgba(139,92,246,0.3)" : "#8b5cf6",
-              border: "none", borderRadius: "8px",
-              padding: "10px 22px", color: "white",
-              fontSize: "13px", fontFamily: "monospace",
-              letterSpacing: "1px", cursor: "pointer",
-              transition: "all 0.2s", whiteSpace: "nowrap",
-            }}>
-              {sendingEmail ? "Sending..." : "Send Current Listings →"}
-            </button>
-          </div>
-          {emailStatus && (
-            <div style={{
-              marginTop: "10px", fontSize: "13px", fontFamily: "monospace",
-              color: emailStatus.type === "success" ? "#34d399" : "#f87171",
-            }}>
-              {emailStatus.type === "success" ? "✓" : "✗"} {emailStatus.msg}
-            </div>
-          )}
-          <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#4b5563", fontFamily: "monospace" }}>
-            Sends top {Math.min(filteredJobs.length, 5)} jobs from your current view via Gmail
-          </p>
-        </div>
-
-        {/* Search + Filters */}
-        <div style={{ marginBottom: "24px" }}>
-          <input
-            type="text"
-            placeholder="Search by title, company, or location..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{
-              width: "100%", boxSizing: "border-box",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "10px",
-              padding: "12px 18px",
-              color: "#f0ede8", fontSize: "15px",
-              fontFamily: "Georgia, serif",
-              outline: "none", marginBottom: "16px",
-            }}
-          />
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {FILTERS.map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{
-                padding: "7px 16px",
-                background: filter === f ? "#8b5cf6" : "rgba(255,255,255,0.04)",
-                border: `1px solid ${filter === f ? "#8b5cf6" : "rgba(255,255,255,0.1)"}`,
-                borderRadius: "20px", color: filter === f ? "white" : "#9ca3af",
-                fontSize: "13px", cursor: "pointer",
-                fontFamily: "monospace", letterSpacing: "0.5px",
-                transition: "all 0.15s",
-              }}>
-                {f}
-              </button>
-            ))}
-            <span style={{ marginLeft: "auto", alignSelf: "center", fontSize: "13px", color: "#4b5563", fontFamily: "monospace" }}>
-              {loading ? "Loading..." : `${filteredJobs.length} roles`}
-            </span>
-          </div>
-        </div>
-
-        {/* Job Cards */}
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <div style={{ fontSize: "32px", marginBottom: "16px" }}>◌</div>
-            <p style={{ color: "#4b5563", fontFamily: "monospace", fontSize: "13px", letterSpacing: "2px" }}>
-              CURATING POSITIONS...
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {filteredJobs.map((job, i) => (
-              <div
-                key={job.id || i}
-                onClick={() => setSelectedJob(selectedJob?.id === job.id ? null : job)}
-                style={{
-                  background: selectedJob?.id === job.id ? "rgba(139,92,246,0.08)" : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${selectedJob?.id === job.id ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.06)"}`,
-                  borderRadius: "10px",
-                  padding: "20px 24px",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  position: "relative",
-                }}
-                onMouseOver={e => { if (selectedJob?.id !== job.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                onMouseOut={e => { if (selectedJob?.id !== job.id) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
-              >
-                {/* AI badge */}
-                {job.isAI && (
-                  <div style={{
-                    position: "absolute", top: "16px", right: "20px",
-                    fontSize: "10px", letterSpacing: "2px", color: "#8b5cf6",
-                    fontFamily: "monospace", textTransform: "uppercase",
-                  }}>
-                    ✦ AI CO.
-                  </div>
-                )}
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap" }}>
-                      <h3 style={{ margin: 0, fontSize: "17px", fontWeight: "400", color: "#f0ede8", letterSpacing: "-0.3px" }}>
-                        {job.title}
-                      </h3>
-                    </div>
-                    <div style={{ fontSize: "14px", color: "#6b7280", fontFamily: "monospace", marginBottom: "10px" }}>
-                      {job.company} · {job.location}
-                    </div>
-
-                    {/* Tags */}
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                      {job.tags?.map(tag => (
-                        <span key={tag} style={{
-                          padding: "3px 9px",
-                          borderRadius: "4px",
-                          fontSize: "11px",
-                          fontFamily: "monospace",
-                          letterSpacing: "0.5px",
-                          background: TAG_COLORS[tag]?.bg || "#1f2937",
-                          color: TAG_COLORS[tag]?.color || "#9ca3af",
-                        }}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: "16px", color: "#f0ede8", fontFamily: "monospace", whiteSpace: "nowrap" }}>
-                      {job.salary}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#4b5563", fontFamily: "monospace", marginTop: "4px" }}>
-                      {timeAgo(job.postedDays)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded details */}
-                {selectedJob?.id === job.id && (
-                  <div style={{
-                    marginTop: "16px",
-                    paddingTop: "16px",
-                    borderTop: "1px solid rgba(255,255,255,0.08)",
-                  }}>
-                    <p style={{ margin: "0 0 16px", fontSize: "14px", color: "#9ca3af", lineHeight: "1.6" }}>
-                      {job.description}
-                    </p>
-                    <a
-                      href={job.applyUrl || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        display: "inline-block",
-                        background: "#8b5cf6",
-                        color: "white",
-                        padding: "9px 20px",
-                        borderRadius: "7px",
-                        fontSize: "13px",
-                        fontFamily: "monospace",
-                        letterSpacing: "1px",
-                        textDecoration: "none",
-                        transition: "opacity 0.15s",
-                      }}
-                    >
-                      Apply Now →
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && filteredJobs.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px", color: "#4b5563" }}>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>∅</div>
-            <p style={{ fontFamily: "monospace" }}>No roles match your current filters.</p>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div style={{ marginTop: "48px", paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-          <p style={{ fontSize: "12px", color: "#374151", fontFamily: "monospace", letterSpacing: "1px" }}>
-            CURATED BY CLAUDE AI · REMOTE-FIRST · UX POSITIONS 2026
-          </p>
-        </div>
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="eyebrow">✦ Curated for Jared</div>
+        <h1>UX Positions</h1>
+        <p class="subtitle">Remote-first · AI companies · $150K+ roles</p>
+      </div>
+      <div class="header-actions">
+        <span class="last-updated" id="lastUpdated"></span>
+        <button class="btn-ghost" onclick="renderJobs()">↻ Shuffle</button>
       </div>
     </div>
-  );
+  </header>
+
+  <div class="alert-box">
+    <div class="alert-label">✉ Email Job Alerts</div>
+    <div class="alert-row">
+      <input class="alert-input" type="email" id="emailInput" placeholder="your@email.com" />
+      <button class="btn-purple" onclick="sendAlert()">Email Listings →</button>
+    </div>
+    <div id="alertStatus" class="alert-status"></div>
+    <p class="alert-hint">Opens your email client with the top matching roles</p>
+  </div>
+
+  <input class="search-input" type="text" id="searchInput" placeholder="Search by title, company, or location..." oninput="renderJobs()" />
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('All',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('Remote',this)">Remote</button>
+    <button class="filter-btn" onclick="setFilter('AI Company',this)">AI Company</button>
+    <button class="filter-btn" onclick="setFilter('$150K+',this)">$150K+</button>
+    <button class="filter-btn" onclick="setFilter('Senior',this)">Senior</button>
+    <span class="count" id="countLabel">— roles</span>
+  </div>
+
+  <div class="jobs" id="jobList"></div>
+
+  <footer><p>CURATED FOR JARED · REMOTE-FIRST · UX POSITIONS 2026</p></footer>
+</div>
+
+<script>
+const JOBS = [
+  { id:1, title:"Senior UX Designer", company:"Anthropic", location:"Remote (US)", salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior"], description:"Lead design on Claude's consumer and developer interfaces, shaping how millions interact with AI. You'll work closely with research and engineering to craft thoughtful, human-centered experiences at the frontier of AI.", postedDays:1, isAI:true, applyUrl:"https://www.anthropic.com/careers" },
+  { id:2, title:"Staff Product Designer", company:"OpenAI", location:"Remote (US)", salary:"$200K–$250K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior"], description:"Own end-to-end design for ChatGPT's core product experience used by 100M+ users. Partner with PMs and researchers to identify unmet user needs and ship polished, scalable interfaces.", postedDays:0, isAI:true, applyUrl:"https://openai.com/careers" },
+  { id:3, title:"UX Researcher", company:"Figma", location:"Remote (US/Canada)", salary:"$155K–$190K", salaryMin:155, tags:["Remote","AI Company","$150K+"], description:"Drive mixed-methods research to guide Figma's AI-powered design tools. Synthesize findings into actionable insights and present to leadership to influence roadmap decisions.", postedDays:2, isAI:true, applyUrl:"https://www.figma.com/careers" },
+  { id:4, title:"Principal UX Designer", company:"Google DeepMind", location:"London / Remote", salary:"$180K–$230K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior"], description:"Shape the design language for DeepMind's applied AI products, from Gemini integrations to research tools. High-impact IC role with direct influence on product strategy.", postedDays:3, isAI:true, applyUrl:"https://deepmind.google/careers" },
+  { id:5, title:"UX Designer — Design Systems", company:"Notion", location:"Remote (Global)", salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"], description:"Build and maintain Notion's design system as it scales with new AI features. Collaborate across teams to ensure consistency and create reusable components.", postedDays:4, isAI:true, applyUrl:"https://www.notion.so/careers" },
+  { id:6, title:"Senior Interaction Designer", company:"Linear", location:"Remote (Global)", salary:"$150K–$185K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior"], description:"Define the interaction model for Linear's next-gen project management features with embedded AI. Strong opinions on what great software feels like are a must.", postedDays:1, isAI:true, applyUrl:"https://linear.app/careers" },
+  { id:7, title:"Product Designer", company:"Stripe", location:"Remote (US)", salary:"$160K–$200K", salaryMin:160, tags:["Remote","$150K+"], description:"Design financial infrastructure products used by millions of developers worldwide. Bring clarity to complex technical concepts through elegant, functional UI.", postedDays:5, isAI:false, applyUrl:"https://stripe.com/jobs" },
+  { id:8, title:"Lead UX Designer", company:"Vercel", location:"Remote (US/EU)", salary:"$155K–$195K", salaryMin:155, tags:["Remote","$150K+","Senior"], description:"Lead UX for Vercel's developer experience platform from CLI to dashboard. Champion developers as users and shape tools they rely on every day.", postedDays:2, isAI:false, applyUrl:"https://vercel.com/careers" },
+  { id:9, title:"UX Designer — Conversational AI", company:"Microsoft", location:"Hybrid — Seattle, WA", salary:"$145K–$180K", salaryMin:145, tags:["AI Company","$150K+"], description:"Design conversational and agentic AI interfaces for Microsoft Copilot across Office 365 and Windows. Work at the intersection of NLP research and product design.", postedDays:6, isAI:true, applyUrl:"https://careers.microsoft.com" },
+  { id:10, title:"UX Research Lead", company:"Runway ML", location:"Remote (US)", salary:"$160K–$195K", salaryMin:160, tags:["Remote","AI Company","$150K+","Senior"], description:"Build and lead UX research at a fast-growing generative AI video company. Your insights will directly shape how creators and filmmakers interact with cutting-edge AI tools.", postedDays:0, isAI:true, applyUrl:"https://runwayml.com/careers" },
+  { id:11, title:"Product Designer", company:"Perplexity AI", location:"San Francisco / Remote", salary:"$150K–$185K", salaryMin:150, tags:["Remote","AI Company","$150K+"], description:"Design the future of AI-powered search and knowledge discovery at one of the fastest-growing AI startups. Own the end-to-end experience from query to answer.", postedDays:3, isAI:true, applyUrl:"https://www.perplexity.ai/careers" },
+  { id:12, title:"Lead Product Designer", company:"Cohere", location:"Remote (US/Canada)", salary:"$165K–$205K", salaryMin:165, tags:["Remote","AI Company","$150K+","Senior"], description:"Drive product design for Cohere's enterprise AI platform used by Fortune 500 companies. Shape developer-facing and end-user tools for language-powered products.", postedDays:1, isAI:true, applyUrl:"https://cohere.com/careers" },
+  { id:13, title:"UX Designer — Mobile", company:"Duolingo", location:"Remote (US)", salary:"$120K–$150K", salaryMin:120, tags:["Remote"], description:"Design delightful, gamified mobile experiences for Duolingo's 50M+ daily active learners. Run rapid experiments and iterate fast in a data-driven culture.", postedDays:8, isAI:false, applyUrl:"https://careers.duolingo.com" },
+  { id:14, title:"Senior UX Designer — Enterprise", company:"Salesforce", location:"Hybrid — Chicago, IL", salary:"$155K–$185K", salaryMin:155, tags:["$150K+","Senior"], description:"Design complex enterprise CRM workflows for Salesforce's Einstein AI suite. Strong systems thinking required to simplify complicated business processes.", postedDays:9, isAI:false, applyUrl:"https://www.salesforce.com/company/careers" },
+  { id:15, title:"UX Designer", company:"Midjourney", location:"Remote (Global)", salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"], description:"Design interfaces for one of the world's most beloved generative image tools. Help millions of artists and designers create stunning visuals through intuitive UX.", postedDays:2, isAI:true, applyUrl:"https://www.midjourney.com/jobs" },
+  { id:16, title:"Senior Product Designer", company:"Loom", location:"Remote (US)", salary:"$135K–$165K", salaryMin:135, tags:["Remote","$150K+","Senior"], description:"Shape how people communicate asynchronously through video with new AI-powered features like auto-summaries and smart editing. Own key flows from concept to launch.", postedDays:7, isAI:false, applyUrl:"https://www.loom.com/careers" },
+];
+
+const TAG_COLORS = {
+  "Remote":     { bg:"#d1fae5", color:"#065f46" },
+  "AI Company": { bg:"#ede9fe", color:"#5b21b6" },
+  "$150K+":     { bg:"#fef3c7", color:"#92400e" },
+  "Senior":     { bg:"#fee2e2", color:"#991b1b" },
+  "New":        { bg:"#dbeafe", color:"#1e40af" },
+};
+
+let activeFilter = "All";
+let openJobId = null;
+
+function ago(d) { return d===0?"Today":d===1?"Yesterday":d+"d ago"; }
+
+function getFiltered() {
+  const q = (document.getElementById("searchInput").value||"").toLowerCase();
+  return JOBS.filter(j => {
+    const fMatch = activeFilter==="All" || j.tags.includes(activeFilter);
+    const sMatch = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.location.toLowerCase().includes(q);
+    return fMatch && sMatch;
+  });
 }
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderJobs();
+}
+
+function toggleJob(id) {
+  openJobId = openJobId===id ? null : id;
+  renderJobs();
+}
+
+function renderJobs() {
+  const filtered = getFiltered();
+  // Sort: New first, then by salary descending
+  const sorted = [...filtered].sort((a,b) => a.postedDays - b.postedDays || b.salaryMin - a.salaryMin);
+
+  document.getElementById("countLabel").textContent = filtered.length+" roles";
+  document.getElementById("lastUpdated").textContent = "Updated "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+
+  const list = document.getElementById("jobList");
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">∅</div><p style="font-family:monospace">No roles match your current filters.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = sorted.map(job => {
+    const isNew = job.postedDays <= 3;
+    const allTags = isNew && !job.tags.includes("New") ? [...job.tags,"New"] : job.tags;
+    const tagHTML = allTags.map(tag => {
+      const c = TAG_COLORS[tag]||{bg:"#1f2937",color:"#9ca3af"};
+      return `<span class="tag" style="background:${c.bg};color:${c.color}">${tag}</span>`;
+    }).join("");
+
+    return `<div class="job-card${openJobId===job.id?" open":""}" onclick="toggleJob(${job.id})">
+      ${job.isAI?`<div class="ai-badge">✦ AI CO.</div>`:""}
+      <div class="card-inner">
+        <div class="card-left">
+          <div class="job-title">${job.title}</div>
+          <div class="job-meta">${job.company} · ${job.location}</div>
+          <div class="tags">${tagHTML}</div>
+        </div>
+        <div class="card-right">
+          <div class="salary">${job.salary}</div>
+          <div class="posted">${ago(job.postedDays)}</div>
+        </div>
+      </div>
+      <div class="card-detail">
+        <p class="job-desc">${job.description}</p>
+        <a class="btn-apply" href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Apply Now →</a>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function sendAlert() {
+  const email = document.getElementById("emailInput").value.trim();
+  const status = document.getElementById("alertStatus");
+  if (!email.includes("@")) {
+    status.style.color="#f87171"; status.textContent="✗ Please enter a valid email address."; return;
+  }
+  const filtered = getFiltered().slice(0,6);
+  const lines = filtered.map((j,i) =>
+    `${i+1}. ${j.title} at ${j.company} — ${j.salary}\n   ${j.location} | ${j.tags.join(", ")}\n   Apply: ${j.applyUrl}`
+  ).join("\n\n");
+  const subject = encodeURIComponent(`UX Job Alert — ${getFiltered().length} Roles Found`);
+  const body = encodeURIComponent(`Hi,\n\nYour latest curated UX job opportunities (filter: "${activeFilter}"):\n\n${lines}\n\n— Find Jared a Job`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  status.style.color="#34d399"; status.textContent="✓ Email client opened! Review and hit send.";
+}
+
+renderJobs();
+</script>
+</body>
+</html>
