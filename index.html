@@ -87,7 +87,7 @@
       <div>
         <div class="eyebrow">✦ Curated for Jared</div>
         <h1>UX Positions</h1>
-        <p class="subtitle">Remote-first · AI companies · $150K+ roles</p>
+        <p class="subtitle">Remote-first · AI companies · UX & Data · $150K+ roles</p>
       </div>
       <div class="header-actions">
         <span class="last-updated" id="lastUpdated"></span>
@@ -113,6 +113,7 @@
     <button class="filter-btn" onclick="setFilter('AI Company',this)">AI Company</button>
     <button class="filter-btn" onclick="setFilter('$150K+',this)">$150K+</button>
     <button class="filter-btn" onclick="setFilter('Senior',this)">Senior</button>
+    <button class="filter-btn" onclick="setFilter('Data Research',this)">Data Research</button>
     <span class="count" id="countLabel">— roles</span>
   </div>
 
@@ -139,6 +140,16 @@ const JOBS = [
   { id:14, title:"Senior UX Designer — Enterprise", company:"Salesforce", location:"Hybrid — Chicago, IL", salary:"$155K–$185K", salaryMin:155, tags:["$150K+","Senior"], description:"Design complex enterprise CRM workflows for Salesforce's Einstein AI suite. Strong systems thinking required to simplify complicated business processes.", postedDays:9, isAI:false, applyUrl:"https://www.salesforce.com/company/careers" },
   { id:15, title:"UX Designer", company:"Midjourney", location:"Remote (Global)", salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"], description:"Design interfaces for one of the world's most beloved generative image tools. Help millions of artists and designers create stunning visuals through intuitive UX.", postedDays:2, isAI:true, applyUrl:"https://www.midjourney.com/jobs" },
   { id:16, title:"Senior Product Designer", company:"Loom", location:"Remote (US)", salary:"$135K–$165K", salaryMin:135, tags:["Remote","$150K+","Senior"], description:"Shape how people communicate asynchronously through video with new AI-powered features like auto-summaries and smart editing. Own key flows from concept to launch.", postedDays:7, isAI:false, applyUrl:"https://www.loom.com/careers" },
+
+  // Data Research
+  { id:17, title:"Senior Data Scientist", company:"Anthropic", location:"Remote (US)", salary:"$180K–$240K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Drive quantitative research to understand model behavior, safety properties, and user outcomes at scale. You'll work alongside alignment researchers to turn data into actionable insights.", postedDays:1, isAI:true, applyUrl:"https://www.anthropic.com/careers" },
+  { id:18, title:"Research Scientist — Data", company:"OpenAI", location:"Remote (US)", salary:"$200K–$280K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Conduct original research on large-scale datasets to improve model training, evaluation, and deployment. Publish findings and collaborate with world-class ML researchers.", postedDays:0, isAI:true, applyUrl:"https://openai.com/careers" },
+  { id:19, title:"Staff Data Scientist", company:"Stripe", location:"Remote (US)", salary:"$175K–$215K", salaryMin:175, tags:["Remote","$150K+","Senior","Data Research"], description:"Lead data science efforts across Stripe's payments and fraud detection products. You'll build models that process billions of transactions and directly impact revenue and safety.", postedDays:2, isAI:false, applyUrl:"https://stripe.com/jobs" },
+  { id:20, title:"Senior Research Analyst", company:"Figma", location:"Remote (US/Canada)", salary:"$155K–$185K", salaryMin:155, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Lead quantitative and qualitative research programs that shape Figma's product strategy. Partner with design and engineering to translate research into measurable product outcomes.", postedDays:3, isAI:true, applyUrl:"https://www.figma.com/careers" },
+  { id:21, title:"Data Research Scientist", company:"Cohere", location:"Remote (Global)", salary:"$165K–$210K", salaryMin:165, tags:["Remote","AI Company","$150K+","Data Research"], description:"Research data pipelines, training corpus quality, and evaluation frameworks for enterprise language models. Work at the cutting edge of applied NLP research.", postedDays:1, isAI:true, applyUrl:"https://cohere.com/careers" },
+  { id:22, title:"Senior Data Analyst", company:"Notion", location:"Remote (US)", salary:"$150K–$180K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Own analytics across Notion's AI product suite, building dashboards and models that guide growth and retention decisions. Strong SQL and experimentation skills required.", postedDays:4, isAI:true, applyUrl:"https://www.notion.so/careers" },
+  { id:23, title:"Principal Data Scientist", company:"Vercel", location:"Remote (US/EU)", salary:"$170K–$210K", salaryMin:170, tags:["Remote","$150K+","Senior","Data Research"], description:"Define the data strategy for Vercel's developer platform, from experimentation frameworks to predictive analytics. You'll set the standard for data-driven decision making company-wide.", postedDays:5, isAI:false, applyUrl:"https://vercel.com/careers" },
+  { id:24, title:"UX Data Researcher", company:"Google DeepMind", location:"Remote (US/UK)", salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Blend UX research methods with large-scale data analysis to understand how users interact with AI systems. Bridge qualitative insights and quantitative signals to inform product direction.", postedDays:2, isAI:true, applyUrl:"https://deepmind.google/careers" },
 ];
 
 const TAG_COLORS = {
@@ -147,6 +158,7 @@ const TAG_COLORS = {
   "$150K+":     { bg:"#fef3c7", color:"#92400e" },
   "Senior":     { bg:"#fee2e2", color:"#991b1b" },
   "New":        { bg:"#dbeafe", color:"#1e40af" },
+  "Data Research": { bg:"#fce7f3", color:"#9d174d" },
 };
 
 let activeFilter = "All";
