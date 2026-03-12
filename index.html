@@ -3,28 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Find Jared a Job — UX Positions</title>
-  <meta name="description" content="Curated UX job listings. Remote-first, AI companies, $150K+ roles." />
+  <title>Find Jared a Job — UX & Data Positions</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #0a0a0f; font-family: Georgia, 'Times New Roman', serif; color: #f0ede8; }
-    input { font-family: monospace; }
-    input::placeholder { color: #4b5563; }
-    input:focus { outline: none; border-color: #8b5cf6 !important; }
+    input, textarea, button { font-family: monospace; }
+    input::placeholder, textarea::placeholder { color: #4b5563; }
+    input:focus, textarea:focus { outline: none; border-color: #8b5cf6 !important; }
 
-    .grid-bg {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 60px 60px;
-    }
-    .glow {
-      position: fixed; top: -200px; right: -100px;
-      width: 600px; height: 600px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
-      pointer-events: none; z-index: 0;
-    }
+    .grid-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 60px 60px; }
+    .glow { position: fixed; top: -200px; right: -100px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%); pointer-events: none; z-index: 0; }
     .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
 
     header { padding: 48px 0 32px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 28px; }
@@ -34,21 +22,21 @@
     .subtitle { margin-top: 8px; color: #6b7280; font-size: 15px; font-family: monospace; }
     .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .last-updated { font-size: 12px; color: #4b5563; font-family: monospace; }
-    .btn-ghost { background: none; border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-family: monospace; letter-spacing: 1px; cursor: pointer; transition: border-color 0.2s; }
+    .btn-ghost { background: none; border: 1px solid rgba(255,255,255,0.15); color: #9ca3af; padding: 8px 16px; border-radius: 6px; font-size: 12px; letter-spacing: 1px; cursor: pointer; transition: border-color 0.2s; }
     .btn-ghost:hover { border-color: #8b5cf6; }
 
     .alert-box { background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.2); border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
     .alert-label { font-size: 11px; letter-spacing: 2px; color: #8b5cf6; margin-bottom: 12px; text-transform: uppercase; font-family: monospace; }
     .alert-row { display: flex; gap: 10px; flex-wrap: wrap; }
     .alert-input { flex: 1; min-width: 200px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: #f0ede8; font-size: 14px; }
-    .btn-purple { background: #8b5cf6; border: none; border-radius: 8px; padding: 10px 22px; color: white; font-size: 13px; font-family: monospace; letter-spacing: 1px; white-space: nowrap; cursor: pointer; transition: opacity 0.2s; }
+    .btn-purple { background: #8b5cf6; border: none; border-radius: 8px; padding: 10px 22px; color: white; font-size: 13px; letter-spacing: 1px; white-space: nowrap; cursor: pointer; transition: opacity 0.2s; }
     .btn-purple:hover { opacity: 0.85; }
     .alert-hint { margin-top: 10px; font-size: 12px; color: #4b5563; font-family: monospace; }
     .alert-status { margin-top: 10px; font-size: 13px; font-family: monospace; }
 
     .search-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 18px; color: #f0ede8; font-size: 15px; font-family: Georgia, serif; margin-bottom: 16px; }
     .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
-    .filter-btn { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-family: monospace; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #9ca3af; cursor: pointer; transition: all 0.15s; }
+    .filter-btn { padding: 7px 16px; border-radius: 20px; font-size: 13px; letter-spacing: 0.5px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #9ca3af; cursor: pointer; transition: all 0.15s; }
     .filter-btn.active { background: #8b5cf6; border-color: #8b5cf6; color: white; }
     .count { margin-left: auto; font-size: 13px; color: #4b5563; font-family: monospace; }
 
@@ -69,12 +57,49 @@
     .card-detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
     .job-card.open .card-detail { display: block; }
     .job-desc { font-size: 14px; color: #9ca3af; line-height: 1.6; margin-bottom: 16px; }
-    .btn-apply { display: inline-block; background: #8b5cf6; color: white; padding: 9px 20px; border-radius: 7px; font-size: 13px; font-family: monospace; letter-spacing: 1px; text-decoration: none; }
+    .card-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn-apply { display: inline-block; background: #8b5cf6; color: white; padding: 9px 20px; border-radius: 7px; font-size: 13px; letter-spacing: 1px; text-decoration: none; }
+    .btn-tailor-open { background: none; border: 1px solid rgba(139,92,246,0.4); color: #a78bfa; padding: 9px 16px; border-radius: 7px; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; transition: all 0.15s; }
+    .btn-tailor-open:hover { background: rgba(139,92,246,0.12); }
+
     .empty { text-align: center; padding: 60px; color: #4b5563; }
     .empty-icon { font-size: 40px; margin-bottom: 12px; }
     footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
     footer p { font-size: 12px; color: #374151; font-family: monospace; letter-spacing: 1px; }
+
+    /* ── Resume Tailor Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #0f0f18; border: 1px solid rgba(139,92,246,0.35); border-radius: 16px; width: 100%; max-width: 920px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+    .modal-header { padding: 22px 28px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-shrink: 0; }
+    .modal-eyebrow { font-size: 10px; letter-spacing: 3px; color: #8b5cf6; text-transform: uppercase; font-family: monospace; margin-bottom: 5px; }
+    .modal-job-title { font-size: 20px; font-weight: 400; color: #f0ede8; letter-spacing: -0.3px; }
+    .modal-job-meta { font-size: 13px; color: #6b7280; font-family: monospace; margin-top: 3px; }
+    .modal-close { background: none; border: 1px solid rgba(255,255,255,0.1); color: #6b7280; width: 34px; height: 34px; border-radius: 7px; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { border-color: #f87171; color: #f87171; }
+    .modal-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    .modal-pane { flex: 1; display: flex; flex-direction: column; padding: 18px 24px; overflow: hidden; gap: 10px; }
+    .modal-pane + .modal-pane { border-left: 1px solid rgba(255,255,255,0.07); }
+    .pane-label { font-size: 10px; letter-spacing: 2px; color: #4b5563; text-transform: uppercase; font-family: monospace; flex-shrink: 0; }
+    .resume-textarea { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; color: #d1d5db; font-size: 12.5px; line-height: 1.65; resize: none; min-height: 0; }
+    .output-box { flex: 1; background: rgba(139,92,246,0.04); border: 1px solid rgba(139,92,246,0.15); border-radius: 8px; padding: 14px; color: #d1d5db; font-size: 12.5px; line-height: 1.65; overflow-y: auto; white-space: pre-wrap; min-height: 0; }
+    .output-placeholder { color: #374151; font-style: italic; font-size: 13px; }
+    .modal-footer { padding: 14px 24px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+    .api-key-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; padding: 0 12px; }
+    .api-key-icon { font-size: 13px; color: #4b5563; flex-shrink: 0; }
+    .api-key-input { flex: 1; background: none; border: none; padding: 9px 0; color: #f0ede8; font-size: 12px; }
+    .api-key-input:focus { outline: none; }
+    .btn-generate { background: #8b5cf6; border: none; border-radius: 7px; padding: 10px 22px; color: white; font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: opacity 0.2s; white-space: nowrap; }
+    .btn-generate:hover { opacity: 0.85; }
+    .btn-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-copy-out { background: none; border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; padding: 10px 16px; color: #9ca3af; font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn-copy-out:hover { border-color: #8b5cf6; color: #a78bfa; }
+    .tailor-status { font-size: 12px; font-family: monospace; margin-left: auto; }
+    .loading-dots::after { content: ''; animation: dots 1.2s steps(3,end) infinite; }
+    @keyframes dots { 0%,100%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+
     @media (max-width: 600px) { .card-inner { flex-direction: column; } .card-right { text-align: left; } }
+    @media (max-width: 700px) { .modal-body { flex-direction: column; } .modal-pane + .modal-pane { border-left: none; border-top: 1px solid rgba(255,255,255,0.07); } }
   </style>
 </head>
 <body>
@@ -119,50 +144,83 @@
 
   <div class="jobs" id="jobList"></div>
 
-  <footer><p>CURATED FOR JARED · REMOTE-FIRST · UX POSITIONS 2026</p></footer>
+  <footer><p>CURATED FOR JARED · REMOTE-FIRST · UX & DATA POSITIONS 2026</p></footer>
+</div>
+
+<!-- Resume Tailor Modal -->
+<div class="modal-overlay" id="tailorModal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-eyebrow">✦ AI Resume Tailor</div>
+        <div class="modal-job-title" id="modalJobTitle">—</div>
+        <div class="modal-job-meta" id="modalJobMeta">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-pane">
+        <div class="pane-label">Your Resume</div>
+        <textarea class="resume-textarea" id="resumeInput" placeholder="Paste your resume here — work experience, skills, education, anything you have..."></textarea>
+      </div>
+      <div class="modal-pane">
+        <div class="pane-label">Tailored Version</div>
+        <div class="output-box" id="tailoredOutput"><span class="output-placeholder">Your AI-tailored resume will appear here.\n\nPaste your resume on the left, enter your API key below, then hit Generate.</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="api-key-wrap">
+        <span class="api-key-icon">🔑</span>
+        <input class="api-key-input" type="password" id="apiKeyInput" placeholder="sk-ant-... (Anthropic API key)" />
+      </div>
+      <button class="btn-generate" id="generateBtn" onclick="tailorResume()">✦ Generate</button>
+      <button class="btn-copy-out" onclick="copyOutput()">Copy</button>
+      <span class="tailor-status" id="tailorStatus"></span>
+    </div>
+  </div>
 </div>
 
 <script>
 const JOBS = [
-  { id:1, title:"Senior UX Designer", company:"Anthropic", location:"Remote (US)", salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior"], description:"Lead design on Claude's consumer and developer interfaces, shaping how millions interact with AI. You'll work closely with research and engineering to craft thoughtful, human-centered experiences at the frontier of AI.", postedDays:1, isAI:true, applyUrl:"https://www.anthropic.com/careers" },
-  { id:2, title:"Staff Product Designer", company:"OpenAI", location:"Remote (US)", salary:"$200K–$250K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior"], description:"Own end-to-end design for ChatGPT's core product experience used by 100M+ users. Partner with PMs and researchers to identify unmet user needs and ship polished, scalable interfaces.", postedDays:0, isAI:true, applyUrl:"https://openai.com/careers" },
-  { id:3, title:"UX Researcher", company:"Figma", location:"Remote (US/Canada)", salary:"$155K–$190K", salaryMin:155, tags:["Remote","AI Company","$150K+"], description:"Drive mixed-methods research to guide Figma's AI-powered design tools. Synthesize findings into actionable insights and present to leadership to influence roadmap decisions.", postedDays:2, isAI:true, applyUrl:"https://www.figma.com/careers" },
-  { id:4, title:"Principal UX Designer", company:"Google DeepMind", location:"London / Remote", salary:"$180K–$230K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior"], description:"Shape the design language for DeepMind's applied AI products, from Gemini integrations to research tools. High-impact IC role with direct influence on product strategy.", postedDays:3, isAI:true, applyUrl:"https://deepmind.google/careers" },
-  { id:5, title:"UX Designer — Design Systems", company:"Notion", location:"Remote (Global)", salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"], description:"Build and maintain Notion's design system as it scales with new AI features. Collaborate across teams to ensure consistency and create reusable components.", postedDays:4, isAI:true, applyUrl:"https://www.notion.so/careers" },
-  { id:6, title:"Senior Interaction Designer", company:"Linear", location:"Remote (Global)", salary:"$150K–$185K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior"], description:"Define the interaction model for Linear's next-gen project management features with embedded AI. Strong opinions on what great software feels like are a must.", postedDays:1, isAI:true, applyUrl:"https://linear.app/careers" },
-  { id:7, title:"Product Designer", company:"Stripe", location:"Remote (US)", salary:"$160K–$200K", salaryMin:160, tags:["Remote","$150K+"], description:"Design financial infrastructure products used by millions of developers worldwide. Bring clarity to complex technical concepts through elegant, functional UI.", postedDays:5, isAI:false, applyUrl:"https://stripe.com/jobs" },
-  { id:8, title:"Lead UX Designer", company:"Vercel", location:"Remote (US/EU)", salary:"$155K–$195K", salaryMin:155, tags:["Remote","$150K+","Senior"], description:"Lead UX for Vercel's developer experience platform from CLI to dashboard. Champion developers as users and shape tools they rely on every day.", postedDays:2, isAI:false, applyUrl:"https://vercel.com/careers" },
-  { id:9, title:"UX Designer — Conversational AI", company:"Microsoft", location:"Hybrid — Seattle, WA", salary:"$145K–$180K", salaryMin:145, tags:["AI Company","$150K+"], description:"Design conversational and agentic AI interfaces for Microsoft Copilot across Office 365 and Windows. Work at the intersection of NLP research and product design.", postedDays:6, isAI:true, applyUrl:"https://careers.microsoft.com" },
-  { id:10, title:"UX Research Lead", company:"Runway ML", location:"Remote (US)", salary:"$160K–$195K", salaryMin:160, tags:["Remote","AI Company","$150K+","Senior"], description:"Build and lead UX research at a fast-growing generative AI video company. Your insights will directly shape how creators and filmmakers interact with cutting-edge AI tools.", postedDays:0, isAI:true, applyUrl:"https://runwayml.com/careers" },
-  { id:11, title:"Product Designer", company:"Perplexity AI", location:"San Francisco / Remote", salary:"$150K–$185K", salaryMin:150, tags:["Remote","AI Company","$150K+"], description:"Design the future of AI-powered search and knowledge discovery at one of the fastest-growing AI startups. Own the end-to-end experience from query to answer.", postedDays:3, isAI:true, applyUrl:"https://www.perplexity.ai/careers" },
-  { id:12, title:"Lead Product Designer", company:"Cohere", location:"Remote (US/Canada)", salary:"$165K–$205K", salaryMin:165, tags:["Remote","AI Company","$150K+","Senior"], description:"Drive product design for Cohere's enterprise AI platform used by Fortune 500 companies. Shape developer-facing and end-user tools for language-powered products.", postedDays:1, isAI:true, applyUrl:"https://cohere.com/careers" },
-  { id:13, title:"UX Designer — Mobile", company:"Duolingo", location:"Remote (US)", salary:"$120K–$150K", salaryMin:120, tags:["Remote"], description:"Design delightful, gamified mobile experiences for Duolingo's 50M+ daily active learners. Run rapid experiments and iterate fast in a data-driven culture.", postedDays:8, isAI:false, applyUrl:"https://careers.duolingo.com" },
-  { id:14, title:"Senior UX Designer — Enterprise", company:"Salesforce", location:"Hybrid — Chicago, IL", salary:"$155K–$185K", salaryMin:155, tags:["$150K+","Senior"], description:"Design complex enterprise CRM workflows for Salesforce's Einstein AI suite. Strong systems thinking required to simplify complicated business processes.", postedDays:9, isAI:false, applyUrl:"https://www.salesforce.com/company/careers" },
-  { id:15, title:"UX Designer", company:"Midjourney", location:"Remote (Global)", salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"], description:"Design interfaces for one of the world's most beloved generative image tools. Help millions of artists and designers create stunning visuals through intuitive UX.", postedDays:2, isAI:true, applyUrl:"https://www.midjourney.com/jobs" },
-  { id:16, title:"Senior Product Designer", company:"Loom", location:"Remote (US)", salary:"$135K–$165K", salaryMin:135, tags:["Remote","$150K+","Senior"], description:"Shape how people communicate asynchronously through video with new AI-powered features like auto-summaries and smart editing. Own key flows from concept to launch.", postedDays:7, isAI:false, applyUrl:"https://www.loom.com/careers" },
-
+  { id:1,  title:"Senior UX Designer",            company:"Anthropic",       location:"Remote (US)",         salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Lead design on Claude's consumer and developer interfaces, shaping how millions interact with AI. You'll work closely with research and engineering to craft thoughtful, human-centered experiences at the frontier of AI.", postedDays:1, isAI:true,  applyUrl:"https://www.anthropic.com/careers" },
+  { id:2,  title:"Staff Product Designer",         company:"OpenAI",          location:"Remote (US)",         salary:"$200K–$250K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Own end-to-end design for ChatGPT's core product experience used by 100M+ users. Partner with PMs and researchers to identify unmet user needs and ship polished, scalable interfaces.", postedDays:0, isAI:true,  applyUrl:"https://openai.com/careers" },
+  { id:3,  title:"UX Researcher",                  company:"Figma",           location:"Remote (US/Canada)",  salary:"$155K–$190K", salaryMin:155, tags:["Remote","AI Company","$150K+"],                               description:"Drive mixed-methods research to guide Figma's AI-powered design tools. Synthesize findings into actionable insights and present to leadership to influence roadmap decisions.", postedDays:2, isAI:true,  applyUrl:"https://www.figma.com/careers" },
+  { id:4,  title:"Principal UX Designer",          company:"Google DeepMind", location:"London / Remote",     salary:"$180K–$230K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Shape the design language for DeepMind's applied AI products, from Gemini integrations to research tools. High-impact IC role with direct influence on product strategy.", postedDays:3, isAI:true,  applyUrl:"https://deepmind.google/careers" },
+  { id:5,  title:"UX Designer — Design Systems",   company:"Notion",          location:"Remote (Global)",     salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"],                               description:"Build and maintain Notion's design system as it scales with new AI features. Collaborate across teams to ensure consistency and create reusable components.", postedDays:4, isAI:true,  applyUrl:"https://www.notion.so/careers" },
+  { id:6,  title:"Senior Interaction Designer",    company:"Linear",          location:"Remote (Global)",     salary:"$150K–$185K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Define the interaction model for Linear's next-gen project management features with embedded AI. Strong opinions on what great software feels like are a must.", postedDays:1, isAI:true,  applyUrl:"https://linear.app/careers" },
+  { id:7,  title:"Product Designer",               company:"Stripe",          location:"Remote (US)",         salary:"$160K–$200K", salaryMin:160, tags:["Remote","$150K+"],                                            description:"Design financial infrastructure products used by millions of developers worldwide. Bring clarity to complex technical concepts through elegant, functional UI.", postedDays:5, isAI:false, applyUrl:"https://stripe.com/jobs" },
+  { id:8,  title:"Lead UX Designer",               company:"Vercel",          location:"Remote (US/EU)",      salary:"$155K–$195K", salaryMin:155, tags:["Remote","$150K+","Senior"],                                   description:"Lead UX for Vercel's developer experience platform from CLI to dashboard. Champion developers as users and shape tools they rely on every day.", postedDays:2, isAI:false, applyUrl:"https://vercel.com/careers" },
+  { id:9,  title:"UX Designer — Conversational AI",company:"Microsoft",       location:"Hybrid — Seattle, WA",salary:"$145K–$180K", salaryMin:145, tags:["AI Company","$150K+"],                                       description:"Design conversational and agentic AI interfaces for Microsoft Copilot across Office 365 and Windows. Work at the intersection of NLP research and product design.", postedDays:6, isAI:true,  applyUrl:"https://careers.microsoft.com" },
+  { id:10, title:"UX Research Lead",               company:"Runway ML",       location:"Remote (US)",         salary:"$160K–$195K", salaryMin:160, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Build and lead UX research at a fast-growing generative AI video company. Your insights will directly shape how creators and filmmakers interact with cutting-edge AI tools.", postedDays:0, isAI:true,  applyUrl:"https://runwayml.com/careers" },
+  { id:11, title:"Product Designer",               company:"Perplexity AI",   location:"San Francisco / Remote",salary:"$150K–$185K",salaryMin:150, tags:["Remote","AI Company","$150K+"],                              description:"Design the future of AI-powered search and knowledge discovery at one of the fastest-growing AI startups. Own the end-to-end experience from query to answer.", postedDays:3, isAI:true,  applyUrl:"https://www.perplexity.ai/careers" },
+  { id:12, title:"Lead Product Designer",          company:"Cohere",          location:"Remote (US/Canada)",  salary:"$165K–$205K", salaryMin:165, tags:["Remote","AI Company","$150K+","Senior"],                      description:"Drive product design for Cohere's enterprise AI platform used by Fortune 500 companies. Shape developer-facing and end-user tools for language-powered products.", postedDays:1, isAI:true,  applyUrl:"https://cohere.com/careers" },
+  { id:13, title:"UX Designer — Mobile",           company:"Duolingo",        location:"Remote (US)",         salary:"$120K–$150K", salaryMin:120, tags:["Remote"],                                                     description:"Design delightful, gamified mobile experiences for Duolingo's 50M+ daily active learners. Run rapid experiments and iterate fast in a data-driven culture.", postedDays:8, isAI:false, applyUrl:"https://careers.duolingo.com" },
+  { id:14, title:"Senior UX Designer — Enterprise",company:"Salesforce",      location:"Hybrid — Chicago, IL",salary:"$155K–$185K", salaryMin:155, tags:["$150K+","Senior"],                                           description:"Design complex enterprise CRM workflows for Salesforce's Einstein AI suite. Strong systems thinking required to simplify complicated business processes.", postedDays:9, isAI:false, applyUrl:"https://www.salesforce.com/company/careers" },
+  { id:15, title:"UX Designer",                    company:"Midjourney",      location:"Remote (Global)",     salary:"$140K–$170K", salaryMin:140, tags:["Remote","AI Company","$150K+"],                               description:"Design interfaces for one of the world's most beloved generative image tools. Help millions of artists and designers create stunning visuals through intuitive UX.", postedDays:2, isAI:true,  applyUrl:"https://www.midjourney.com/jobs" },
+  { id:16, title:"Senior Product Designer",        company:"Loom",            location:"Remote (US)",         salary:"$135K–$165K", salaryMin:135, tags:["Remote","$150K+","Senior"],                                   description:"Shape how people communicate asynchronously through video with new AI-powered features like auto-summaries and smart editing. Own key flows from concept to launch.", postedDays:7, isAI:false, applyUrl:"https://www.loom.com/careers" },
   // Data Research
-  { id:17, title:"Senior Data Scientist", company:"Anthropic", location:"Remote (US)", salary:"$180K–$240K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Drive quantitative research to understand model behavior, safety properties, and user outcomes at scale. You'll work alongside alignment researchers to turn data into actionable insights.", postedDays:1, isAI:true, applyUrl:"https://www.anthropic.com/careers" },
-  { id:18, title:"Research Scientist — Data", company:"OpenAI", location:"Remote (US)", salary:"$200K–$280K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Conduct original research on large-scale datasets to improve model training, evaluation, and deployment. Publish findings and collaborate with world-class ML researchers.", postedDays:0, isAI:true, applyUrl:"https://openai.com/careers" },
-  { id:19, title:"Staff Data Scientist", company:"Stripe", location:"Remote (US)", salary:"$175K–$215K", salaryMin:175, tags:["Remote","$150K+","Senior","Data Research"], description:"Lead data science efforts across Stripe's payments and fraud detection products. You'll build models that process billions of transactions and directly impact revenue and safety.", postedDays:2, isAI:false, applyUrl:"https://stripe.com/jobs" },
-  { id:20, title:"Senior Research Analyst", company:"Figma", location:"Remote (US/Canada)", salary:"$155K–$185K", salaryMin:155, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Lead quantitative and qualitative research programs that shape Figma's product strategy. Partner with design and engineering to translate research into measurable product outcomes.", postedDays:3, isAI:true, applyUrl:"https://www.figma.com/careers" },
-  { id:21, title:"Data Research Scientist", company:"Cohere", location:"Remote (Global)", salary:"$165K–$210K", salaryMin:165, tags:["Remote","AI Company","$150K+","Data Research"], description:"Research data pipelines, training corpus quality, and evaluation frameworks for enterprise language models. Work at the cutting edge of applied NLP research.", postedDays:1, isAI:true, applyUrl:"https://cohere.com/careers" },
-  { id:22, title:"Senior Data Analyst", company:"Notion", location:"Remote (US)", salary:"$150K–$180K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Own analytics across Notion's AI product suite, building dashboards and models that guide growth and retention decisions. Strong SQL and experimentation skills required.", postedDays:4, isAI:true, applyUrl:"https://www.notion.so/careers" },
-  { id:23, title:"Principal Data Scientist", company:"Vercel", location:"Remote (US/EU)", salary:"$170K–$210K", salaryMin:170, tags:["Remote","$150K+","Senior","Data Research"], description:"Define the data strategy for Vercel's developer platform, from experimentation frameworks to predictive analytics. You'll set the standard for data-driven decision making company-wide.", postedDays:5, isAI:false, applyUrl:"https://vercel.com/careers" },
-  { id:24, title:"UX Data Researcher", company:"Google DeepMind", location:"Remote (US/UK)", salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior","Data Research"], description:"Blend UX research methods with large-scale data analysis to understand how users interact with AI systems. Bridge qualitative insights and quantitative signals to inform product direction.", postedDays:2, isAI:true, applyUrl:"https://deepmind.google/careers" },
+  { id:17, title:"Senior Data Scientist",          company:"Anthropic",       location:"Remote (US)",         salary:"$180K–$240K", salaryMin:180, tags:["Remote","AI Company","$150K+","Senior","Data Research"],      description:"Drive quantitative research to understand model behavior, safety properties, and user outcomes at scale. You'll work alongside alignment researchers to turn data into actionable insights.", postedDays:1, isAI:true,  applyUrl:"https://www.anthropic.com/careers" },
+  { id:18, title:"Research Scientist — Data",      company:"OpenAI",          location:"Remote (US)",         salary:"$200K–$280K", salaryMin:200, tags:["Remote","AI Company","$150K+","Senior","Data Research"],      description:"Conduct original research on large-scale datasets to improve model training, evaluation, and deployment. Publish findings and collaborate with world-class ML researchers.", postedDays:0, isAI:true,  applyUrl:"https://openai.com/careers" },
+  { id:19, title:"Staff Data Scientist",           company:"Stripe",          location:"Remote (US)",         salary:"$175K–$215K", salaryMin:175, tags:["Remote","$150K+","Senior","Data Research"],                   description:"Lead data science efforts across Stripe's payments and fraud detection products. You'll build models that process billions of transactions and directly impact revenue and safety.", postedDays:2, isAI:false, applyUrl:"https://stripe.com/jobs" },
+  { id:20, title:"Senior Research Analyst",        company:"Figma",           location:"Remote (US/Canada)",  salary:"$155K–$185K", salaryMin:155, tags:["Remote","AI Company","$150K+","Senior","Data Research"],      description:"Lead quantitative and qualitative research programs that shape Figma's product strategy. Partner with design and engineering to translate research into measurable product outcomes.", postedDays:3, isAI:true,  applyUrl:"https://www.figma.com/careers" },
+  { id:21, title:"Data Research Scientist",        company:"Cohere",          location:"Remote (Global)",     salary:"$165K–$210K", salaryMin:165, tags:["Remote","AI Company","$150K+","Data Research"],               description:"Research data pipelines, training corpus quality, and evaluation frameworks for enterprise language models. Work at the cutting edge of applied NLP research.", postedDays:1, isAI:true,  applyUrl:"https://cohere.com/careers" },
+  { id:22, title:"Senior Data Analyst",            company:"Notion",          location:"Remote (US)",         salary:"$150K–$180K", salaryMin:150, tags:["Remote","AI Company","$150K+","Senior","Data Research"],      description:"Own analytics across Notion's AI product suite, building dashboards and models that guide growth and retention decisions. Strong SQL and experimentation skills required.", postedDays:4, isAI:true,  applyUrl:"https://www.notion.so/careers" },
+  { id:23, title:"Principal Data Scientist",       company:"Vercel",          location:"Remote (US/EU)",      salary:"$170K–$210K", salaryMin:170, tags:["Remote","$150K+","Senior","Data Research"],                   description:"Define the data strategy for Vercel's developer platform, from experimentation frameworks to predictive analytics. You'll set the standard for data-driven decision making company-wide.", postedDays:5, isAI:false, applyUrl:"https://vercel.com/careers" },
+  { id:24, title:"UX Data Researcher",             company:"Google DeepMind", location:"Remote (US/UK)",      salary:"$175K–$220K", salaryMin:175, tags:["Remote","AI Company","$150K+","Senior","Data Research"],      description:"Blend UX research methods with large-scale data analysis to understand how users interact with AI systems. Bridge qualitative insights and quantitative signals to inform product direction.", postedDays:2, isAI:true,  applyUrl:"https://deepmind.google/careers" },
 ];
 
 const TAG_COLORS = {
-  "Remote":     { bg:"#d1fae5", color:"#065f46" },
-  "AI Company": { bg:"#ede9fe", color:"#5b21b6" },
-  "$150K+":     { bg:"#fef3c7", color:"#92400e" },
-  "Senior":     { bg:"#fee2e2", color:"#991b1b" },
-  "New":        { bg:"#dbeafe", color:"#1e40af" },
+  "Remote":        { bg:"#d1fae5", color:"#065f46" },
+  "AI Company":    { bg:"#ede9fe", color:"#5b21b6" },
+  "$150K+":        { bg:"#fef3c7", color:"#92400e" },
+  "Senior":        { bg:"#fee2e2", color:"#991b1b" },
+  "New":           { bg:"#dbeafe", color:"#1e40af" },
   "Data Research": { bg:"#fce7f3", color:"#9d174d" },
 };
 
 let activeFilter = "All";
 let openJobId = null;
+let currentJob = null;
 
 function ago(d) { return d===0?"Today":d===1?"Yesterday":d+"d ago"; }
 
@@ -189,13 +247,11 @@ function toggleJob(id) {
 
 function renderJobs() {
   const filtered = getFiltered();
-  // Sort: New first, then by salary descending
   const sorted = [...filtered].sort((a,b) => a.postedDays - b.postedDays || b.salaryMin - a.salaryMin);
-
   document.getElementById("countLabel").textContent = filtered.length+" roles";
   document.getElementById("lastUpdated").textContent = "Updated "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-
   const list = document.getElementById("jobList");
+
   if (!filtered.length) {
     list.innerHTML = `<div class="empty"><div class="empty-icon">∅</div><p style="font-family:monospace">No roles match your current filters.</p></div>`;
     return;
@@ -224,24 +280,127 @@ function renderJobs() {
       </div>
       <div class="card-detail">
         <p class="job-desc">${job.description}</p>
-        <a class="btn-apply" href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Apply Now →</a>
+        <div class="card-actions">
+          <a class="btn-apply" href="${job.applyUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Apply Now →</a>
+          <button class="btn-tailor-open" onclick="event.stopPropagation(); openTailor(${job.id})">✦ Tailor Resume</button>
+        </div>
       </div>
     </div>`;
   }).join("");
 }
 
+// ── Modal ──
+function openTailor(jobId) {
+  currentJob = JOBS.find(j => j.id === jobId);
+  document.getElementById("modalJobTitle").textContent = currentJob.title;
+  document.getElementById("modalJobMeta").textContent = currentJob.company + " · " + currentJob.location + " · " + currentJob.salary;
+  document.getElementById("tailoredOutput").innerHTML = '<span class="output-placeholder">Your AI-tailored resume will appear here.\n\nPaste your resume on the left, enter your API key below, then hit Generate.</span>';
+  document.getElementById("tailorStatus").textContent = "";
+  document.getElementById("tailorModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+
+  // Restore saved API key
+  const saved = localStorage.getItem("uxboard_apikey");
+  if (saved) document.getElementById("apiKeyInput").value = saved;
+}
+
+function closeModal() {
+  document.getElementById("tailorModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById("tailorModal")) closeModal();
+}
+
+async function tailorResume() {
+  const resume = document.getElementById("resumeInput").value.trim();
+  const apiKey = document.getElementById("apiKeyInput").value.trim();
+  const btn = document.getElementById("generateBtn");
+  const status = document.getElementById("tailorStatus");
+  const output = document.getElementById("tailoredOutput");
+
+  if (!resume) { status.style.color="#f87171"; status.textContent="✗ Paste your resume first."; return; }
+  if (!apiKey.startsWith("sk-ant-")) { status.style.color="#f87171"; status.textContent="✗ Enter a valid Anthropic API key."; return; }
+  if (!currentJob) return;
+
+  // Save key locally
+  localStorage.setItem("uxboard_apikey", apiKey);
+
+  btn.disabled = true;
+  output.innerHTML = '<span class="output-placeholder loading-dots">Tailoring your resume</span>';
+  status.style.color="#8b5cf6"; status.textContent="";
+
+  const prompt = `You are an expert resume writer and career coach. Your task is to tailor the resume below specifically for the following job posting.
+
+JOB: ${currentJob.title}
+COMPANY: ${currentJob.company}
+LOCATION: ${currentJob.location}
+SALARY: ${currentJob.salary}
+DESCRIPTION: ${currentJob.description}
+
+RESUME:
+${resume}
+
+Please rewrite the resume to:
+1. Mirror the exact language and keywords from the job description
+2. Reorder and emphasize the most relevant experience for this specific role
+3. Quantify achievements where possible
+4. Adjust the summary/objective to speak directly to this role and company
+5. Keep all factual information accurate — do not invent experience
+6. Maintain a clean, professional format using plain text
+
+Return only the tailored resume text — no commentary, no preamble, just the resume.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.content?.map(b => b.text||"").join("") || "";
+    output.textContent = text;
+    status.style.color="#34d399"; status.textContent="✓ Done";
+  } catch (err) {
+    output.innerHTML = '<span class="output-placeholder">Error: ' + err.message + '</span>';
+    status.style.color="#f87171"; status.textContent="✗ Failed";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function copyOutput() {
+  const text = document.getElementById("tailoredOutput").textContent;
+  if (!text || text.includes("will appear here")) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(".btn-copy-out");
+    btn.textContent = "Copied ✓";
+    setTimeout(() => btn.textContent = "Copy", 2000);
+  });
+}
+
+// ── Email ──
 function sendAlert() {
   const email = document.getElementById("emailInput").value.trim();
   const status = document.getElementById("alertStatus");
-  if (!email.includes("@")) {
-    status.style.color="#f87171"; status.textContent="✗ Please enter a valid email address."; return;
-  }
+  if (!email.includes("@")) { status.style.color="#f87171"; status.textContent="✗ Please enter a valid email address."; return; }
   const filtered = getFiltered().slice(0,6);
-  const lines = filtered.map((j,i) =>
-    `${i+1}. ${j.title} at ${j.company} — ${j.salary}\n   ${j.location} | ${j.tags.join(", ")}\n   Apply: ${j.applyUrl}`
-  ).join("\n\n");
+  const lines = filtered.map((j,i) => `${i+1}. ${j.title} at ${j.company} — ${j.salary}\n   ${j.location} | ${j.tags.join(", ")}\n   Apply: ${j.applyUrl}`).join("\n\n");
   const subject = encodeURIComponent(`UX Job Alert — ${getFiltered().length} Roles Found`);
-  const body = encodeURIComponent(`Hi,\n\nYour latest curated UX job opportunities (filter: "${activeFilter}"):\n\n${lines}\n\n— Find Jared a Job`);
+  const body = encodeURIComponent(`Hi,\n\nYour latest curated job opportunities (filter: "${activeFilter}"):\n\n${lines}\n\n— Find Jared a Job`);
   window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   status.style.color="#34d399"; status.textContent="✓ Email client opened! Review and hit send.";
 }
